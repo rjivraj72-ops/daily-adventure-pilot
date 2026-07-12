@@ -69,7 +69,10 @@
               <p class="eyebrow">Step 1</p>
               <h2>Family profile</h2>
             </div>
-            <span class="status-pill">Demo storage</span>
+            <div class="toolbar-actions">
+              <a class="secondary-link parent-menu-shortcut" href="#parent-menu">Parent Menu</a>
+              <span class="status-pill">Demo storage</span>
+            </div>
           </div>
 
           <div class="form-grid">
@@ -204,8 +207,8 @@
           </a>
           <a class="menu-card" href="#setup">
             <small>Setup</small>
-            <strong>Add family setup</strong>
-            <span>Create another test family or update pilot setup flow.</span>
+            <strong>Family Setup</strong>
+            <span>Create or test a learner profile.</span>
           </a>
           <a class="menu-card" href="#admin">
             <small>Pilot</small>
@@ -280,7 +283,10 @@
             <p class="eyebrow">Family</p>
             <h2>Progress view</h2>
           </div>
-          <select id="familySelectParent" aria-label="Choose family"></select>
+          <div class="toolbar-actions">
+            <a class="secondary-link" href="#parent-menu">Parent Menu</a>
+            <select id="familySelectParent" aria-label="Choose family"></select>
+          </div>
         </div>
         <div id="parentDashboard"></div>
       </section>
@@ -305,7 +311,10 @@
             <p class="eyebrow">Admin</p>
             <h2>Family list</h2>
           </div>
-          <button id="exportPilotData" class="secondary-action" type="button">Export JSON</button>
+          <div class="toolbar-actions">
+            <a class="secondary-link" href="#parent-menu">Parent Menu</a>
+            <button id="exportPilotData" class="secondary-action" type="button">Export JSON</button>
+          </div>
         </div>
         <div id="adminList"></div>
       </section>

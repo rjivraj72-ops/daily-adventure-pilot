@@ -20,7 +20,7 @@ The starter question bank is generic. It does not use any private family informa
 
 - **Family Setup**: parent creates a learner profile, age range, starting level, goals, interests, PIN, and voice style.
 - **Learner App**: short daily activity cards chosen from a reusable question bank based on the learner's goals and interests, with answer choices, text/dictation responses, and optional ElevenLabs voice prompts.
-- **Parent Area**: setup, dashboard, and admin tools are tucked behind the Parent PIN.
+- **Parent Area**: setup, dashboard, and admin tools are tucked behind the Parent PIN. Once unlocked, parents can move between parent tools without re-entering the PIN until they tap Lock or reload the app.
 - **Parent Dashboard**: progress, answer attempts, Talk Time, practice suggestions, natural tester feedback prompts, and export.
 - **Pilot Admin**: family list, recent activity, feedback counts, and export data behind the parent area.
 - **Home Screen App Icon**: `manifest.webmanifest` and `icons/` help the app save cleanly on iPhone and mobile browsers.

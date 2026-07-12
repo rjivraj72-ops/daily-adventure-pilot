@@ -1,4 +1,5 @@
 const storageKey = "dailyAdventurePilot";
+const parentUnlockKey = `${storageKey}:parentUnlocked`;
 const totalRounds = 8;
 
 const starterQuestionBank = [
@@ -127,11 +128,20 @@ const localStore = {
 };
 
 let state = localStore.load();
-let parentUnlocked = false;
+let parentUnlocked = sessionStorage.getItem(parentUnlockKey) === "true";
 let currentAudio = null;
 
 function saveState() {
   localStore.save(state);
+}
+
+function setParentUnlocked(value) {
+  parentUnlocked = value;
+  if (value) {
+    sessionStorage.setItem(parentUnlockKey, "true");
+  } else {
+    sessionStorage.removeItem(parentUnlockKey);
+  }
 }
 
 function todayKey() {
@@ -338,6 +348,7 @@ function mountTemplate(id) {
 
 function renderSetup() {
   mountTemplate("#setup-view");
+  document.querySelector(".parent-menu-shortcut")?.classList.toggle("is-hidden", !parentUnlocked);
   const form = document.querySelector("#family-form");
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -364,7 +375,7 @@ function renderSetup() {
     state.families.push(family);
     state.activeFamilyId = family.id;
     saveState();
-    parentUnlocked = false;
+    setParentUnlocked(false);
     toast(`${family.childName}'s pilot setup is ready.`);
     navigate("child");
   });
@@ -387,7 +398,7 @@ function renderParentAccess(targetView = "parent-menu") {
       toast("That PIN did not match.");
       return;
     }
-    parentUnlocked = true;
+    setParentUnlocked(true);
     playPrompt("parentUnlock", family, { force: true });
     toast("Parent area unlocked.");
     navigate(targetView);
@@ -398,7 +409,7 @@ function renderParentMenu() {
   mountTemplate("#parent-menu-view");
   document.querySelector("#lockParentArea").addEventListener("click", () => {
     const family = getActiveFamily();
-    parentUnlocked = false;
+    setParentUnlocked(false);
     playPrompt("parentLock", family, { force: true });
     toast("Parent area locked.");
     navigate("child");

@@ -354,6 +354,22 @@ legend {
   border: 1px solid rgba(8, 120, 101, 0.16);
 }
 
+.secondary-link {
+  display: inline-grid;
+  min-height: 44px;
+  place-items: center;
+  padding: 0 14px;
+  border: 1px solid rgba(8, 120, 101, 0.16);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff, var(--surface-soft));
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
 .secondary-action.is-muted {
   color: var(--muted);
   background: #fff;
