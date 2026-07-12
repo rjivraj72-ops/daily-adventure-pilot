@@ -17,19 +17,16 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#setup" aria-label="Daily Adventure Pilot home">
+        <a class="brand" href="#child" aria-label="Daily Adventure Pilot home">
           <span class="brand-mark">DA</span>
           <span>
             <strong>Daily Adventure</strong>
             <small>Pilot</small>
           </span>
         </a>
-        <nav aria-label="Pilot navigation">
-          <a href="#setup" data-nav="setup">Family Setup</a>
-          <a href="#child" data-nav="child">Child App</a>
-          <a href="#parent" data-nav="parent">Parent Dashboard</a>
-          <a href="#admin" data-nav="admin">Pilot Admin</a>
-        </nav>
+        <div class="topbar-actions">
+          <a class="parent-link" href="#parent-access" data-nav="parent-access">Parent</a>
+        </div>
       </header>
 
       <main id="app" tabindex="-1"></main>
@@ -39,12 +36,12 @@
       <section class="hero">
         <div>
           <p class="eyebrow">Family pilot</p>
-          <h1>Create your child's learning adventure.</h1>
+          <h1>Create your learner's daily adventure.</h1>
           <p class="lead">Choose a few goals and interests, then Daily Adventure creates a short daily path that feels personal, encouraging, and easy to try.</p>
         </div>
         <div class="hero-card">
           <strong>Parent promise</strong>
-          <p>Parent-controlled data, clear consent, and no public sharing of child responses.</p>
+          <p>Parent-controlled data, clear consent, and no public sharing of learner responses.</p>
         </div>
       </section>
 
@@ -85,7 +82,7 @@
               <input id="parentEmail" name="parentEmail" type="email" autocomplete="email" placeholder="Optional for pilot">
             </label>
             <label>
-              Child first name
+              Learner first name
               <input id="childName" name="childName" required placeholder="Example: Alex">
             </label>
             <label>
@@ -95,6 +92,14 @@
                 <option>13-17</option>
                 <option selected>18-25</option>
                 <option>26+</option>
+              </select>
+            </label>
+            <label>
+              Starting level
+              <select id="startingLevel" name="startingLevel">
+                <option value="beginner">Beginner: short and concrete</option>
+                <option value="growing" selected>Growing: a little more thinking</option>
+                <option value="confident">Confident: more independent</option>
               </select>
             </label>
             <label>
@@ -132,7 +137,7 @@
           </fieldset>
 
           <fieldset>
-            <legend>Child interests</legend>
+            <legend>Learner interests</legend>
             <div class="choice-grid">
               <label><input type="checkbox" name="interests" value="Travel"> Travel</label>
               <label><input type="checkbox" name="interests" value="Exercise"> Exercise</label>
@@ -145,7 +150,7 @@
 
           <label class="consent-box">
             <input id="consentAccepted" name="consentAccepted" type="checkbox" required>
-            <span>I understand this is a family learning pilot, not medical or therapy advice. I can stop using it anytime. My child's responses are used only to support learning and pilot feedback, and are not shared publicly.</span>
+            <span>I understand this is a family learning pilot, not medical or therapy advice. I can stop using it anytime. My learner's responses are used only to support learning and pilot feedback, and are not shared publicly.</span>
           </label>
 
           <button class="primary-action" type="submit">Create family setup</button>
@@ -153,12 +158,75 @@
       </section>
     </template>
 
+    <template id="parent-access-view">
+      <section class="hero compact-hero">
+        <div>
+          <p class="eyebrow">Parent area</p>
+          <h1>Adult tools are tucked away.</h1>
+          <p class="lead">Enter the Parent PIN to open setup, dashboard, feedback, and admin tools.</p>
+        </div>
+        <div class="hero-card">
+          <strong>Learner-first</strong>
+          <p>The daily learning screen stays simple and focused.</p>
+        </div>
+      </section>
+
+      <section class="panel parent-lock-panel">
+        <form id="parent-pin-form" class="parent-pin-form">
+          <label>
+            Parent PIN
+            <input id="parentPinEntry" name="parentPinEntry" inputmode="numeric" maxlength="8" required placeholder="Enter PIN">
+          </label>
+          <button class="primary-action" type="submit">Open parent area</button>
+        </form>
+      </section>
+    </template>
+
+    <template id="parent-menu-view">
+      <section class="hero compact-hero">
+        <div>
+          <p class="eyebrow">Parent area</p>
+          <h1>Choose what you need.</h1>
+          <p class="lead">These tools stay behind the Parent PIN so the learner experience remains calm and focused.</p>
+        </div>
+        <div class="hero-card">
+          <strong>Unlocked</strong>
+          <p>Tap Lock when you are done.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="parent-menu-grid">
+          <a class="menu-card" href="#parent">
+            <small>Progress</small>
+            <strong>Parent Dashboard</strong>
+            <span>See attempts, Talk Time, and practice areas.</span>
+          </a>
+          <a class="menu-card" href="#setup">
+            <small>Setup</small>
+            <strong>Add family setup</strong>
+            <span>Create another test family or update pilot setup flow.</span>
+          </a>
+          <a class="menu-card" href="#admin">
+            <small>Pilot</small>
+            <strong>Pilot Admin</strong>
+            <span>View families, feedback counts, and export data.</span>
+          </a>
+          <button id="lockParentArea" class="menu-card button-card" type="button">
+            <small>Privacy</small>
+            <strong>Lock parent area</strong>
+            <span>Return to the learner app.</span>
+          </button>
+        </div>
+      </section>
+    </template>
+
     <template id="child-view">
       <section class="hero compact-hero">
         <div>
           <p class="eyebrow" id="childFamilyLabel">Daily Adventure</p>
-          <h1 id="childGreeting">Choose a family to begin.</h1>
-          <p class="lead" id="childIntro">Short, friendly practice that meets each student where they are.</p>
+          <h1 id="childGreeting">Choose a learner to begin.</h1>
+          <p class="lead" id="childIntro">Short, friendly practice that meets each learner where they are.</p>
         </div>
         <div class="hero-card">
           <strong id="roundCount">0 of 8</strong>
@@ -169,12 +237,11 @@
       <section class="panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Child app</p>
+            <p class="eyebrow">Learner app</p>
             <h2>Today's path</h2>
           </div>
           <div class="toolbar-actions">
             <button id="voiceToggle" class="secondary-action" type="button">Voice on</button>
-            <select id="familySelectChild" aria-label="Choose family"></select>
           </div>
         </div>
         <div class="progress-track"><span id="progressBar"></span></div>

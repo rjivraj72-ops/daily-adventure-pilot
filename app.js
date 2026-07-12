@@ -42,6 +42,46 @@ const starterQuestionBank = [
   { id: "focus-one-thing", skill: "Memory", title: "Focus check", prompt: "Choose the helpful habit.", question: "When work feels hard, I can...", answer: "Do one step", tags: ["Daily Routine"] }
 ];
 
+const questionLevels = {
+  "memory-bathroom-pair": "beginner",
+  "memory-food-pair": "beginner",
+  "memory-travel-pair": "growing",
+  "memory-exercise-pair": "growing",
+  "money-change-5-3": "growing",
+  "money-two-items": "beginner",
+  "money-travel-ticket": "confident",
+  "money-exercise-water": "growing",
+  "talk-today-plan": "beginner",
+  "talk-feeling": "beginner",
+  "talk-travel-memory": "growing",
+  "talk-exercise-favorite": "growing",
+  "talk-music-choice": "growing",
+  "family-mom-child": "beginner",
+  "family-dad-child": "beginner",
+  "family-sibling": "growing",
+  "family-grandparent": "confident",
+  "language-water": "beginner",
+  "language-hello": "beginner",
+  "language-thank-you": "growing",
+  "language-family": "growing",
+  "language-travel": "confident",
+  "routine-brush-teeth": "beginner",
+  "routine-wash-hands": "beginner",
+  "routine-pack-bag": "growing",
+  "routine-after-exercise": "growing",
+  "business-greeting": "growing",
+  "business-buyer-question": "confident",
+  "business-thank-you": "growing",
+  "focus-breath": "beginner",
+  "focus-one-thing": "growing"
+};
+
+const levelLabels = {
+  beginner: "Beginner",
+  growing: "Growing",
+  confident: "Confident"
+};
+
 const voiceLines = {
   playful_hype: [
     "Brain power is online.",
@@ -83,6 +123,7 @@ const localStore = {
 };
 
 let state = localStore.load();
+let parentUnlocked = false;
 
 function saveState() {
   localStore.save(state);
@@ -107,7 +148,8 @@ function scoreQuestion(question, family) {
   const interests = family.interests || [];
   const goalMatch = goals.includes(question.skill) || goals.some((goal) => question.tags.includes(goal));
   const interestMatch = interests.some((interest) => question.tags.includes(interest));
-  return (goalMatch ? 3 : 0) + (interestMatch ? 2 : 0);
+  const levelMatch = allowedLevelsForFamily(family).includes(questionLevel(question));
+  return (goalMatch ? 3 : 0) + (interestMatch ? 2 : 0) + (levelMatch ? 2 : 0);
 }
 
 function rotate(list, start) {
@@ -129,15 +171,40 @@ function getDailyActivities(family) {
   const day = dayIndex();
   const scored = starterQuestionBank.map((question) => ({
     ...question,
+    level: questionLevel(question),
     score: scoreQuestion(question, family)
   }));
-  const preferred = rotate(scored.filter((question) => question.score > 0), day);
-  const backup = rotate(scored.filter((question) => question.score === 0), day * 2);
+  const allowedLevels = allowedLevelsForFamily(family);
+  const levelReady = scored.filter((question) => allowedLevels.includes(question.level));
+  const preferred = rotate(levelReady.filter((question) => question.score > 0), day);
+  const backup = rotate(levelReady.filter((question) => question.score === 0), day * 2);
+  const fallback = rotate(scored.filter((question) => !allowedLevels.includes(question.level)), day * 3);
   const byGoal = (family.goals || [])
-    .map((goal, goalIndex) => rotate(scored.filter((question) => question.skill === goal), day + goalIndex)[0])
+    .map((goal, goalIndex) => rotate(levelReady.filter((question) => question.skill === goal), day + goalIndex)[0])
     .filter(Boolean);
 
-  return uniqueById([...byGoal, ...preferred, ...backup]).slice(0, totalRounds);
+  return uniqueById([...byGoal, ...preferred, ...backup, ...fallback]).slice(0, totalRounds);
+}
+
+function questionLevel(question) {
+  return question.level || questionLevels[question.id] || "growing";
+}
+
+function ageSuggestedLevel(ageRange) {
+  const map = {
+    "8-12": "beginner",
+    "13-17": "growing",
+    "18-25": "growing",
+    "26+": "confident"
+  };
+  return map[ageRange] || "growing";
+}
+
+function allowedLevelsForFamily(family) {
+  const level = family.startingLevel || ageSuggestedLevel(family.ageRange);
+  if (level === "beginner") return ["beginner", "growing"];
+  if (level === "confident") return ["growing", "confident"];
+  return ["beginner", "growing", "confident"];
 }
 
 function activityKey(activity) {
@@ -221,7 +288,13 @@ function navigate(view) {
 }
 
 function currentView() {
-  return (window.location.hash || "#setup").replace("#", "");
+  const view = (window.location.hash || "").replace("#", "");
+  if (view) return view;
+  return state.families.length ? "child" : "setup";
+}
+
+function adultOnlyView(view) {
+  return ["setup", "parent", "admin", "parent-menu"].includes(view);
 }
 
 function render() {
@@ -230,7 +303,11 @@ function render() {
     link.classList.toggle("active", link.dataset.nav === view);
   });
 
+  if (!state.families.length && view !== "setup") return renderSetup();
+  if (adultOnlyView(view) && state.families.length && !parentUnlocked) return renderParentAccess(view);
   if (view === "child") return renderChild();
+  if (view === "parent-access") return renderParentAccess("parent-menu");
+  if (view === "parent-menu") return renderParentMenu();
   if (view === "parent") return renderParent();
   if (view === "admin") return renderAdmin();
   return renderSetup();
@@ -256,6 +333,7 @@ function renderSetup() {
       parentEmail: formData.get("parentEmail").trim(),
       childName: formData.get("childName").trim(),
       ageRange: formData.get("ageRange"),
+      startingLevel: formData.get("startingLevel"),
       familyPin: formData.get("familyPin").trim(),
       voiceStyle: formData.get("voiceStyle"),
       voiceEnabled: formData.get("voiceEnabled") === "true",
@@ -271,7 +349,40 @@ function renderSetup() {
     state.families.push(family);
     state.activeFamilyId = family.id;
     saveState();
+    parentUnlocked = false;
     toast(`${family.childName}'s pilot setup is ready.`);
+    navigate("child");
+  });
+}
+
+function renderParentAccess(targetView = "parent-menu") {
+  mountTemplate("#parent-access-view");
+  if (!state.families.length) {
+    toast("Create a family setup first.");
+    navigate("setup");
+    return;
+  }
+
+  const family = getActiveFamily();
+  const form = document.querySelector("#parent-pin-form");
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const enteredPin = new FormData(form).get("parentPinEntry").trim();
+    if (enteredPin !== family.familyPin) {
+      toast("That PIN did not match.");
+      return;
+    }
+    parentUnlocked = true;
+    toast("Parent area unlocked.");
+    navigate(targetView);
+  });
+}
+
+function renderParentMenu() {
+  mountTemplate("#parent-menu-view");
+  document.querySelector("#lockParentArea").addEventListener("click", () => {
+    parentUnlocked = false;
+    toast("Parent area locked.");
     navigate("child");
   });
 }
@@ -295,7 +406,6 @@ function renderChild() {
 
   const family = getActiveFamily();
   const session = getSession(family);
-  populateFamilySelect(document.querySelector("#familySelectChild"), family.id);
 
   document.querySelector("#childFamilyLabel").textContent = `${family.childName}'s Daily Adventure`;
   document.querySelector("#childGreeting").textContent = `Hi, ${family.childName}. Ready for today's adventure?`;
@@ -316,7 +426,7 @@ function renderChild() {
     const latestAttempt = latestAttemptFor(session, key);
     return `
       <article class="activity-card ${isComplete ? "complete" : ""}">
-        <small>${escapeHtml(activity.skill)}</small>
+        <small>${escapeHtml(activity.skill)} · ${escapeHtml(levelLabels[activity.level] || "Growing")}</small>
         <h3>${escapeHtml(activity.title)}</h3>
         <p>${escapeHtml(activity.prompt)}</p>
         <strong>${escapeHtml(activity.question)}</strong>
@@ -410,9 +520,11 @@ function updateVoiceToggle(family) {
 }
 
 function buildChildIntro(family) {
-  const interests = family.interests.length ? family.interests.join(", ") : "their interests";
+  const interestsList = family.interests || [];
+  const interests = interestsList.length ? interestsList.join(", ") : "their interests";
   const voice = voiceLines[family.voiceStyle]?.[0] || "Let's begin.";
-  return `${voice} Today's path uses ${interests} to make practice feel personal.`;
+  const level = levelLabels[family.startingLevel || ageSuggestedLevel(family.ageRange)] || "Growing";
+  return `${voice} Today's ${level.toLowerCase()} path uses ${interests} to make practice feel personal.`;
 }
 
 function speak(message, family) {
@@ -449,6 +561,7 @@ function submitActivityAnswer(family, index, selectedAnswer) {
 
   session.attempts.push({
     skill: activity.skill,
+    level: activity.level,
     questionKey: key,
     questionText: activity.question,
     selectedAnswer,
@@ -500,7 +613,7 @@ function renderParent() {
     family.feedback = family.feedback || [];
     family.feedback.push({
       setupEase: formData.get("setupEase"),
-      childEnjoyed: formData.get("childEnjoyed"),
+      learnerEnjoyed: formData.get("learnerEnjoyed"),
       confusing: formData.get("confusing").trim(),
       addNext: formData.get("addNext").trim(),
       createdAt: new Date().toISOString()
@@ -570,8 +683,8 @@ function buildDashboardHtml(family, session) {
           </select>
         </label>
         <label>
-          Did your child enjoy it?
-          <select name="childEnjoyed" required>
+          Did the learner enjoy it?
+          <select name="learnerEnjoyed" required>
             <option value="">Choose one</option>
             <option>Yes</option>
             <option>Somewhat</option>
@@ -600,7 +713,7 @@ function attemptStats(attempts) {
 }
 
 function nextPracticeAreas(family, attempts) {
-  const goals = family.goals.length ? family.goals : ["Talk Time", "Money Math", "Family Words"];
+  const goals = family.goals?.length ? family.goals : ["Talk Time", "Money Math", "Family Words"];
   const attemptedSkills = new Set(attempts.filter((item) => item.isCorrect).map((item) => item.skill));
   const missedSkills = attempts.filter((item) => !item.isCorrect).map((item) => item.skill);
   const notTried = goals.filter((goal) => !attemptedSkills.has(goal));
@@ -641,7 +754,8 @@ function renderAdmin() {
         <article class="admin-card">
           <small>${escapeHtml(family.parentName)} ${family.parentEmail ? `· ${escapeHtml(family.parentEmail)}` : ""}</small>
           <strong>${escapeHtml(family.childName)}</strong>
-          <span>${session.completed.length} of ${totalRounds} rounds today · ${family.goals.join(", ") || "No goals selected"}</span>
+          <span>${session.completed.length} of ${totalRounds} rounds today · ${levelLabels[family.startingLevel || ageSuggestedLevel(family.ageRange)] || "Growing"} level</span>
+          <span>${family.goals.join(", ") || "No goals selected"}</span>
           <span>${(family.feedback || []).length} feedback note${(family.feedback || []).length === 1 ? "" : "s"} saved</span>
         </article>
       `;

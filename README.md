@@ -6,9 +6,9 @@ The goal is simple:
 
 - Parents open one app link.
 - Parents create a family profile.
-- The child gets a daily learning view.
-- Parents get a dashboard.
-- The pilot organizer gets a simple admin view.
+- The learner gets a focused daily learning view.
+- Parents open dashboard/setup/admin tools through a Parent PIN.
+- The pilot organizer gets a simple admin view behind the parent area.
 - Families can leave feedback without needing technical setup.
 - The app can be saved to a phone home screen with a Daily Adventure icon.
 
@@ -18,11 +18,22 @@ The starter question bank is generic. It does not use any private family informa
 
 ## Pages In This Prototype
 
-- **Family Setup**: parent creates a child profile, goals, interests, PIN, and voice style.
-- **Child App**: short daily activity cards chosen from a reusable question bank based on the child's goals and interests, with answer choices, text/dictation responses, and optional browser voice prompts.
+- **Family Setup**: parent creates a learner profile, age range, starting level, goals, interests, PIN, and voice style.
+- **Learner App**: short daily activity cards chosen from a reusable question bank based on the learner's goals and interests, with answer choices, text/dictation responses, and optional browser voice prompts.
+- **Parent Area**: setup, dashboard, and admin tools are tucked behind the Parent PIN.
 - **Parent Dashboard**: progress, answer attempts, Talk Time, practice suggestions, parent feedback, and export.
-- **Pilot Admin**: family list, recent activity, feedback counts, and export data.
+- **Pilot Admin**: family list, recent activity, feedback counts, and export data behind the parent area.
 - **Home Screen App Icon**: `manifest.webmanifest` and `icons/` help the app save cleanly on iPhone and mobile browsers.
+
+## Question Levels
+
+The starter question bank uses three readiness levels:
+
+1. **Beginner**: short, concrete questions.
+2. **Growing**: a little more thinking or language.
+3. **Confident**: more independent reasoning.
+
+Age range gives a gentle suggestion, but the parent-selected starting level guides the daily question mix.
 
 ## Add To iPhone Home Screen
 
