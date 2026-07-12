@@ -31,13 +31,13 @@
     <template id="setup-view">
       <section class="hero">
         <div>
-          <p class="eyebrow">Pilot onboarding</p>
-          <h1>Set up a family in minutes.</h1>
-          <p class="lead">Parents should not need GitHub, Google Apps Script, or code. This flow creates a simple family profile and prepares the child and parent views.</p>
+          <p class="eyebrow">Family pilot</p>
+          <h1>Create your child's learning adventure.</h1>
+          <p class="lead">Choose a few goals and interests, then Daily Adventure creates a short daily path that feels personal, encouraging, and easy to try.</p>
         </div>
         <div class="hero-card">
           <strong>Parent promise</strong>
-          <p>Clear setup, parent-controlled data, and no public sharing of child responses.</p>
+          <p>Parent-controlled data, clear consent, and no public sharing of child responses.</p>
         </div>
       </section>
 
@@ -86,6 +86,13 @@
                 <option value="business">Business builder</option>
               </select>
             </label>
+            <label>
+              Voice prompts
+              <select id="voiceEnabled" name="voiceEnabled">
+                <option value="true" selected>On</option>
+                <option value="false">Off</option>
+              </select>
+            </label>
           </div>
 
           <fieldset>
@@ -114,7 +121,7 @@
 
           <label class="consent-box">
             <input id="consentAccepted" name="consentAccepted" type="checkbox" required>
-            <span>I understand this is a family learning pilot, not medical or therapy advice. I control whether my child's responses are shared.</span>
+            <span>I understand this is a family learning pilot, not medical or therapy advice. I can stop using it anytime. My child's responses are used only to support learning and pilot feedback, and are not shared publicly.</span>
           </label>
 
           <button class="primary-action" type="submit">Create family setup</button>
@@ -141,7 +148,10 @@
             <p class="eyebrow">Child app</p>
             <h2>Today's path</h2>
           </div>
-          <select id="familySelectChild" aria-label="Choose family"></select>
+          <div class="toolbar-actions">
+            <button id="voiceToggle" class="secondary-action" type="button">Voice on</button>
+            <select id="familySelectChild" aria-label="Choose family"></select>
+          </div>
         </div>
         <div class="progress-track"><span id="progressBar"></span></div>
         <div class="activity-grid" id="activityGrid"></div>

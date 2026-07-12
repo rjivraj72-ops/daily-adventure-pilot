@@ -223,12 +223,14 @@ function renderSetup() {
       ageRange: formData.get("ageRange"),
       familyPin: formData.get("familyPin").trim(),
       voiceStyle: formData.get("voiceStyle"),
+      voiceEnabled: formData.get("voiceEnabled") === "true",
       goals: selectedValues(form, "goals"),
       interests: selectedValues(form, "interests"),
       consentAccepted: Boolean(formData.get("consentAccepted")),
       createdAt: new Date().toISOString(),
       sessions: [],
-      notes: []
+      notes: [],
+      feedback: []
     };
 
     state.families.push(family);
@@ -263,6 +265,7 @@ function renderChild() {
   document.querySelector("#childFamilyLabel").textContent = `${family.childName}'s Daily Adventure`;
   document.querySelector("#childGreeting").textContent = `Hi, ${family.childName}. Ready for today's adventure?`;
   document.querySelector("#childIntro").textContent = buildChildIntro(family);
+  updateVoiceToggle(family);
   updateChildProgress(session);
 
   const activities = getDailyActivities(family);
@@ -296,6 +299,14 @@ function renderChild() {
     renderChild();
   });
 
+  document.querySelector("#voiceToggle").addEventListener("click", () => {
+    family.voiceEnabled = !family.voiceEnabled;
+    saveState();
+    updateVoiceToggle(family);
+    if (family.voiceEnabled) speak(`Voice is on. ${buildChildIntro(family)}`, family);
+    toast(`Voice ${family.voiceEnabled ? "on" : "off"}.`);
+  });
+
   document.querySelector("#saveTalkTime").addEventListener("click", () => {
     const response = document.querySelector("#talkResponse").value.trim();
     if (!response) {
@@ -309,14 +320,31 @@ function renderChild() {
     });
     saveState();
     document.querySelector("#talkResponse").value = "";
+    speak("Talk Time saved.", family);
     toast("Talk Time saved for the parent dashboard.");
   });
+}
+
+function updateVoiceToggle(family) {
+  const button = document.querySelector("#voiceToggle");
+  if (!button) return;
+  button.textContent = family.voiceEnabled === false ? "Voice off" : "Voice on";
+  button.classList.toggle("is-muted", family.voiceEnabled === false);
 }
 
 function buildChildIntro(family) {
   const interests = family.interests.length ? family.interests.join(", ") : "their interests";
   const voice = voiceLines[family.voiceStyle]?.[0] || "Let's begin.";
   return `${voice} Today's path uses ${interests} to make practice feel personal.`;
+}
+
+function speak(message, family) {
+  if (family.voiceEnabled === false || !("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(message);
+  utterance.rate = family.voiceStyle === "calm" ? 0.86 : 0.95;
+  utterance.pitch = family.voiceStyle === "playful_hype" ? 1.08 : 1;
+  window.speechSynthesis.speak(utterance);
 }
 
 function updateChildProgress(session) {
@@ -344,7 +372,9 @@ function completeActivity(family, index) {
   });
   saveState();
   const lines = voiceLines[family.voiceStyle] || voiceLines.playful_hype;
-  toast(lines[session.completed.length % lines.length]);
+  const line = lines[session.completed.length % lines.length];
+  speak(line, family);
+  toast(line);
 }
 
 function renderParent() {
@@ -366,6 +396,23 @@ function renderParent() {
     const text = buildParentSummary(family, session);
     await navigator.clipboard.writeText(text);
     toast("Parent summary copied.");
+  });
+
+  document.querySelector("#feedbackForm")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    family.feedback = family.feedback || [];
+    family.feedback.push({
+      setupEase: formData.get("setupEase"),
+      childEnjoyed: formData.get("childEnjoyed"),
+      confusing: formData.get("confusing").trim(),
+      addNext: formData.get("addNext").trim(),
+      createdAt: new Date().toISOString()
+    });
+    saveState();
+    event.currentTarget.reset();
+    toast("Pilot feedback saved. Thank you.");
+    renderParent();
   });
 }
 
@@ -404,6 +451,39 @@ function buildDashboardHtml(family, session) {
       ${practice.map((item) => `<article class="dashboard-card"><strong>${escapeHtml(item)}</strong><span>${escapeHtml(practiceActivity(item, family.childName))}</span></article>`).join("")}
       <button id="copySummary" class="secondary-action" type="button">Copy parent summary</button>
     </div>
+    <form id="feedbackForm" class="feedback-form">
+      <h3>Pilot feedback</h3>
+      <p class="helper-text">A quick parent note helps us improve the experience for the next family.</p>
+      <div class="form-grid">
+        <label>
+          Was setup easy?
+          <select name="setupEase" required>
+            <option value="">Choose one</option>
+            <option>Yes, easy</option>
+            <option>Mostly easy</option>
+            <option>Confusing</option>
+          </select>
+        </label>
+        <label>
+          Did your child enjoy it?
+          <select name="childEnjoyed" required>
+            <option value="">Choose one</option>
+            <option>Yes</option>
+            <option>Somewhat</option>
+            <option>Not yet</option>
+          </select>
+        </label>
+      </div>
+      <label>
+        What felt confusing?
+        <textarea name="confusing" rows="3" placeholder="Optional note"></textarea>
+      </label>
+      <label>
+        What should we add next?
+        <textarea name="addNext" rows="3" placeholder="Optional idea"></textarea>
+      </label>
+      <button class="primary-action" type="submit">Save pilot feedback</button>
+    </form>
   `;
 }
 
@@ -447,6 +527,7 @@ function renderAdmin() {
           <small>${escapeHtml(family.parentName)} ${family.parentEmail ? `· ${escapeHtml(family.parentEmail)}` : ""}</small>
           <strong>${escapeHtml(family.childName)}</strong>
           <span>${session.completed.length} of ${totalRounds} rounds today · ${family.goals.join(", ") || "No goals selected"}</span>
+          <span>${(family.feedback || []).length} feedback note${(family.feedback || []).length === 1 ? "" : "s"} saved</span>
         </article>
       `;
     }).join("")

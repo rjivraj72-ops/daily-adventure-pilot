@@ -18,6 +18,7 @@ create table learners (
   interests text[] not null default '{}',
   goals text[] not null default '{}',
   voice_style text not null default 'playful_hype',
+  voice_enabled boolean not null default true,
   created_at timestamptz not null default now()
 );
 
@@ -68,10 +69,9 @@ create table parent_notes (
 create table pilot_feedback (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
-  rating text,
-  what_worked text,
+  setup_ease text,
+  child_enjoyed text,
   what_was_confusing text,
-  privacy_concerns text,
+  add_next text,
   created_at timestamptz not null default now()
 );
-

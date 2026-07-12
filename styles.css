@@ -218,6 +218,17 @@ h2 {
   margin-bottom: 18px;
 }
 
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.toolbar-actions select {
+  min-width: 190px;
+}
+
 .status-pill {
   display: inline-grid;
   min-height: 34px;
@@ -321,6 +332,11 @@ legend {
   border: 1px solid rgba(8, 120, 101, 0.16);
 }
 
+.secondary-action.is-muted {
+  color: var(--muted);
+  background: #fff;
+}
+
 .progress-track {
   height: 16px;
   overflow: hidden;
@@ -383,6 +399,27 @@ legend {
   gap: 10px;
 }
 
+.feedback-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(8, 120, 101, 0.14);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff, var(--surface-soft));
+}
+
+.feedback-form .primary-action {
+  justify-self: start;
+  min-height: 50px;
+}
+
+.helper-text {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .empty {
   padding: 18px;
   border-radius: 10px;
@@ -422,6 +459,12 @@ legend {
     grid-template-columns: 1fr;
   }
 
+  .section-heading,
+  .toolbar-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .choice-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -450,4 +493,3 @@ legend {
     grid-template-columns: 1fr;
   }
 }
-
