@@ -1,15 +1,45 @@
 const storageKey = "dailyAdventurePilot";
 const totalRounds = 8;
 
-const starterActivities = [
-  { skill: "Memory", title: "Find the pair", prompt: "Match two things that go together.", question: "Toothbrush goes with...", answer: "Toothpaste" },
-  { skill: "Money Math", title: "Customer change", prompt: "A snack is $3. You pay $5. How much change?", question: "$5 minus $3", answer: "$2" },
-  { skill: "Talk Time", title: "Use a sentence", prompt: "Answer with I or my.", question: "What is one thing you want to do today?", answer: "Open response" },
-  { skill: "Family Words", title: "Family practice", prompt: "Think about who belongs to who.", question: "Keyaan is Zamaan's...", answer: "Brother" },
-  { skill: "Language", title: "Spanish card", prompt: "Which Spanish word means water?", question: "Water", answer: "Agua" },
-  { skill: "Routine", title: "Next step", prompt: "Pick what happens next.", question: "After brushing teeth, I...", answer: "Rinse" },
-  { skill: "Business", title: "Buyer choice", prompt: "Think like a helpful business owner.", question: "A buyer asks a question. You should...", answer: "Answer clearly" },
-  { skill: "Focus", title: "Finish strong", prompt: "One calm step at a time.", question: "What helps focus?", answer: "Take a breath" }
+const starterQuestionBank = [
+  { id: "memory-bathroom-pair", skill: "Memory", title: "Find the pair", prompt: "Match two things that go together.", question: "Toothbrush goes with...", answer: "Toothpaste", tags: ["Daily Routine"] },
+  { id: "memory-food-pair", skill: "Memory", title: "Find the pair", prompt: "Match two things that go together.", question: "Bread goes with...", answer: "Butter", tags: ["Food"] },
+  { id: "memory-travel-pair", skill: "Memory", title: "Travel pair", prompt: "Match two things used on a trip.", question: "Passport goes with...", answer: "Suitcase", tags: ["Travel"] },
+  { id: "memory-exercise-pair", skill: "Memory", title: "Exercise pair", prompt: "Match two things used for movement.", question: "Running shoes go with...", answer: "Socks", tags: ["Exercise"] },
+
+  { id: "money-change-5-3", skill: "Money Math", title: "Customer change", prompt: "A snack is $3. You pay $5. How much change?", question: "$5 minus $3", answer: "$2", tags: ["Food", "Business"] },
+  { id: "money-two-items", skill: "Money Math", title: "Add the total", prompt: "A drink is $2 and a bar is $3.", question: "How much altogether?", answer: "$5", tags: ["Food", "Business"] },
+  { id: "money-travel-ticket", skill: "Money Math", title: "Travel ticket", prompt: "A bus ticket is $4. You have $10.", question: "How much money is left?", answer: "$6", tags: ["Travel"] },
+  { id: "money-exercise-water", skill: "Money Math", title: "After workout", prompt: "Water is $2. A snack is $4.", question: "What is the total?", answer: "$6", tags: ["Exercise", "Food"] },
+
+  { id: "talk-today-plan", skill: "Talk Time", title: "Use a sentence", prompt: "Answer with I or my.", question: "What is one thing you want to do today?", answer: "Open response", tags: ["Daily Routine"] },
+  { id: "talk-feeling", skill: "Talk Time", title: "Share a feeling", prompt: "Answer in one full sentence.", question: "How are you feeling today?", answer: "Open response", tags: ["Family"] },
+  { id: "talk-travel-memory", skill: "Talk Time", title: "Travel memory", prompt: "Answer with who, what, and where.", question: "Tell me about a place you liked visiting.", answer: "Open response", tags: ["Travel"] },
+  { id: "talk-exercise-favorite", skill: "Talk Time", title: "Exercise talk", prompt: "Answer with what and why.", question: "What exercise do you like best?", answer: "Open response", tags: ["Exercise"] },
+  { id: "talk-music-choice", skill: "Talk Time", title: "Music talk", prompt: "Answer with what and why.", question: "What song or artist do you want to hear today?", answer: "Open response", tags: ["Music"] },
+
+  { id: "family-mom-child", skill: "Family Words", title: "Family practice", prompt: "Think about family relationships.", question: "Your mom's child is her...", answer: "Son or daughter", tags: ["Family"] },
+  { id: "family-dad-child", skill: "Family Words", title: "Family practice", prompt: "Think about family relationships.", question: "Your dad's child is his...", answer: "Son or daughter", tags: ["Family"] },
+  { id: "family-sibling", skill: "Family Words", title: "Family practice", prompt: "Think about family relationships.", question: "Your brother or sister is your...", answer: "Sibling", tags: ["Family"] },
+  { id: "family-grandparent", skill: "Family Words", title: "Family practice", prompt: "Think about family relationships.", question: "Your parent's mom is your...", answer: "Grandmother", tags: ["Family"] },
+
+  { id: "language-water", skill: "Language Cards", title: "Spanish card", prompt: "Which Spanish word means water?", question: "Water", answer: "Agua", tags: ["Language Cards", "Food"] },
+  { id: "language-hello", skill: "Language Cards", title: "Spanish card", prompt: "Which Spanish word means hello?", question: "Hello", answer: "Hola", tags: ["Language Cards"] },
+  { id: "language-thank-you", skill: "Language Cards", title: "Spanish card", prompt: "Which Spanish phrase means thank you?", question: "Thank you", answer: "Gracias", tags: ["Language Cards"] },
+  { id: "language-family", skill: "Language Cards", title: "Spanish card", prompt: "Which Spanish word means family?", question: "Family", answer: "Familia", tags: ["Language Cards", "Family"] },
+  { id: "language-travel", skill: "Language Cards", title: "Spanish card", prompt: "Which Spanish word means trip?", question: "Trip", answer: "Viaje", tags: ["Language Cards", "Travel"] },
+
+  { id: "routine-brush-teeth", skill: "Daily Routine", title: "Next step", prompt: "Pick what happens next.", question: "After brushing teeth, I...", answer: "Rinse", tags: ["Daily Routine"] },
+  { id: "routine-wash-hands", skill: "Daily Routine", title: "Next step", prompt: "Pick what happens next.", question: "Before eating, I should...", answer: "Wash my hands", tags: ["Daily Routine", "Food"] },
+  { id: "routine-pack-bag", skill: "Daily Routine", title: "Travel routine", prompt: "Pick what happens before leaving.", question: "Before a trip, I should...", answer: "Pack my bag", tags: ["Daily Routine", "Travel"] },
+  { id: "routine-after-exercise", skill: "Daily Routine", title: "Exercise routine", prompt: "Pick what happens after exercise.", question: "After exercise, I should...", answer: "Drink water", tags: ["Daily Routine", "Exercise"] },
+
+  { id: "business-greeting", skill: "Talk Time", title: "Customer greeting", prompt: "Use a clear sentence.", question: "What can you say when a customer says hello?", answer: "Open response", tags: ["Business"] },
+  { id: "business-buyer-question", skill: "Daily Routine", title: "Buyer choice", prompt: "Think like a helpful business owner.", question: "A buyer asks a question. You should...", answer: "Answer clearly", tags: ["Business"] },
+  { id: "business-thank-you", skill: "Talk Time", title: "Business manners", prompt: "Use a polite sentence.", question: "What can you say after someone buys something?", answer: "Open response", tags: ["Business"] },
+
+  { id: "focus-breath", skill: "Daily Routine", title: "Finish strong", prompt: "One calm step at a time.", question: "What helps focus?", answer: "Take a breath", tags: ["Daily Routine"] },
+  { id: "focus-one-thing", skill: "Memory", title: "Focus check", prompt: "Choose the helpful habit.", question: "When work feels hard, I can...", answer: "Do one step", tags: ["Daily Routine"] }
 ];
 
 const voiceLines = {
@@ -62,8 +92,52 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function dayIndex() {
+  const start = new Date("2026-01-01T00:00:00");
+  const today = new Date(`${todayKey()}T00:00:00`);
+  return Math.floor((today - start) / 86400000);
+}
+
 function uid(prefix = "id") {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function scoreQuestion(question, family) {
+  const goals = family.goals || [];
+  const interests = family.interests || [];
+  const goalMatch = goals.includes(question.skill) || goals.some((goal) => question.tags.includes(goal));
+  const interestMatch = interests.some((interest) => question.tags.includes(interest));
+  return (goalMatch ? 3 : 0) + (interestMatch ? 2 : 0);
+}
+
+function rotate(list, start) {
+  if (!list.length) return [];
+  const index = start % list.length;
+  return [...list.slice(index), ...list.slice(0, index)];
+}
+
+function uniqueById(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function getDailyActivities(family) {
+  const day = dayIndex();
+  const scored = starterQuestionBank.map((question) => ({
+    ...question,
+    score: scoreQuestion(question, family)
+  }));
+  const preferred = rotate(scored.filter((question) => question.score > 0), day);
+  const backup = rotate(scored.filter((question) => question.score === 0), day * 2);
+  const byGoal = (family.goals || [])
+    .map((goal, goalIndex) => rotate(scored.filter((question) => question.skill === goal), day + goalIndex)[0])
+    .filter(Boolean);
+
+  return uniqueById([...byGoal, ...preferred, ...backup]).slice(0, totalRounds);
 }
 
 function getActiveFamily() {
@@ -191,9 +265,15 @@ function renderChild() {
   document.querySelector("#childIntro").textContent = buildChildIntro(family);
   updateChildProgress(session);
 
+  const activities = getDailyActivities(family);
+  const talkActivity = activities.find((activity) => activity.skill === "Talk Time");
+  if (talkActivity) {
+    document.querySelector("#talkPrompt").textContent = talkActivity.question;
+  }
+
   const grid = document.querySelector("#activityGrid");
-  grid.innerHTML = starterActivities.map((activity, index) => {
-    const key = `${todayKey()}-${index}`;
+  grid.innerHTML = activities.map((activity, index) => {
+    const key = `${todayKey()}-${activity.id}`;
     const isComplete = session.completed.includes(key);
     return `
       <article class="activity-card ${isComplete ? "complete" : ""}">
@@ -247,8 +327,9 @@ function updateChildProgress(session) {
 
 function completeActivity(family, index) {
   const session = getSession(family);
-  const activity = starterActivities[index];
-  const key = `${todayKey()}-${index}`;
+  const activity = getDailyActivities(family)[index];
+  if (!activity) return;
+  const key = `${todayKey()}-${activity.id}`;
   if (!session.completed.includes(key)) {
     session.completed.push(key);
   }
@@ -395,4 +476,3 @@ function escapeHtml(value) {
 
 window.addEventListener("hashchange", render);
 render();
-
