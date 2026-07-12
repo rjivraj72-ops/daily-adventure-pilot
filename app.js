@@ -140,6 +140,41 @@ function getDailyActivities(family) {
   return uniqueById([...byGoal, ...preferred, ...backup]).slice(0, totalRounds);
 }
 
+function activityKey(activity) {
+  return `${todayKey()}-${activity.id}`;
+}
+
+function isOpenResponse(activity) {
+  return activity.answer === "Open response";
+}
+
+function normalizeAnswer(value) {
+  return String(value || "").trim().toLowerCase().replace(/[.!?]/g, "");
+}
+
+function correctAnswers(activity) {
+  if (activity.answer === "Son or daughter") return ["son", "daughter", "son or daughter"];
+  return [activity.answer];
+}
+
+function answerChoices(activity) {
+  if (isOpenResponse(activity)) return [];
+  const choicesBySkill = {
+    Memory: ["Toothpaste", "Butter", "Suitcase", "Socks", "Fork", "Notebook", "Remote"],
+    "Money Math": ["$2", "$3", "$4", "$5", "$6", "$8"],
+    "Family Words": ["Son or daughter", "Sibling", "Grandmother", "Parent", "Friend"],
+    "Language Cards": ["Agua", "Hola", "Gracias", "Familia", "Viaje", "Adios"],
+    "Daily Routine": ["Rinse", "Wash my hands", "Pack my bag", "Drink water", "Answer clearly", "Take a breath", "Do one step"]
+  };
+  const pool = choicesBySkill[activity.skill] || ["Yes", "No", "Maybe"];
+  const choices = uniqueById([activity.answer, ...pool].map((choice) => ({ id: choice, label: choice }))).slice(0, 4).map((choice) => choice.label);
+  return rotate(choices, dayIndex() + activity.id.length);
+}
+
+function latestAttemptFor(session, key) {
+  return [...session.attempts].reverse().find((attempt) => attempt.questionKey === key) || null;
+}
+
 function getActiveFamily() {
   return state.families.find((family) => family.id === state.activeFamilyId) || state.families[0] || null;
 }
@@ -276,26 +311,28 @@ function renderChild() {
 
   const grid = document.querySelector("#activityGrid");
   grid.innerHTML = activities.map((activity, index) => {
-    const key = `${todayKey()}-${activity.id}`;
+    const key = activityKey(activity);
     const isComplete = session.completed.includes(key);
+    const latestAttempt = latestAttemptFor(session, key);
     return `
       <article class="activity-card ${isComplete ? "complete" : ""}">
         <small>${escapeHtml(activity.skill)}</small>
         <h3>${escapeHtml(activity.title)}</h3>
         <p>${escapeHtml(activity.prompt)}</p>
         <strong>${escapeHtml(activity.question)}</strong>
-        <button class="secondary-action" data-complete-activity="${index}" ${isComplete ? "disabled" : ""}>
-          ${isComplete ? "Done" : "Mark complete"}
-        </button>
+        ${renderAnswerControl(activity, index, isComplete, latestAttempt)}
       </article>
     `;
   }).join("");
 
-  grid.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-complete-activity]");
-    if (!button) return;
-    const index = Number(button.dataset.completeActivity);
-    completeActivity(family, index);
+  grid.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.target.closest("[data-activity-form]");
+    if (!form) return;
+    const index = Number(form.dataset.activityForm);
+    const formData = new FormData(form);
+    const answer = String(formData.get("activityAnswer") || "").trim();
+    submitActivityAnswer(family, index, answer);
     renderChild();
   });
 
@@ -323,6 +360,46 @@ function renderChild() {
     speak("Talk Time saved.", family);
     toast("Talk Time saved for the parent dashboard.");
   });
+}
+
+function renderAnswerControl(activity, index, isComplete, latestAttempt) {
+  if (isComplete) {
+    return `
+      <div class="answer-result correct">
+        <span>Done</span>
+        <strong>${escapeHtml(latestAttempt?.selectedAnswer || activity.answer)}</strong>
+      </div>
+    `;
+  }
+
+  const feedback = latestAttempt && !latestAttempt.isCorrect
+    ? `<p class="answer-hint">Good try. Pick another answer.</p>`
+    : "";
+
+  if (isOpenResponse(activity)) {
+    return `
+      <form class="answer-form" data-activity-form="${index}">
+        <textarea name="activityAnswer" rows="3" required placeholder="Type or dictate an answer."></textarea>
+        ${feedback}
+        <button class="secondary-action" type="submit">Save answer</button>
+      </form>
+    `;
+  }
+
+  return `
+    <form class="answer-form" data-activity-form="${index}">
+      <div class="answer-options">
+        ${answerChoices(activity).map((choice, choiceIndex) => `
+          <label>
+            <input type="radio" name="activityAnswer" value="${escapeHtml(choice)}" ${choiceIndex === 0 ? "required" : ""}>
+            <span>${escapeHtml(choice)}</span>
+          </label>
+        `).join("")}
+      </div>
+      ${feedback}
+      <button class="secondary-action" type="submit">Check answer</button>
+    </form>
+  `;
 }
 
 function updateVoiceToggle(family) {
@@ -353,26 +430,45 @@ function updateChildProgress(session) {
   document.querySelector("#progressBar").style.width = `${Math.round((done / totalRounds) * 100)}%`;
 }
 
-function completeActivity(family, index) {
+function submitActivityAnswer(family, index, selectedAnswer) {
   const session = getSession(family);
   const activity = getDailyActivities(family)[index];
   if (!activity) return;
-  const key = `${todayKey()}-${activity.id}`;
-  if (!session.completed.includes(key)) {
+  if (!selectedAnswer) {
+    toast("Choose or type an answer first.");
+    return;
+  }
+
+  const key = activityKey(activity);
+  const isCorrect = isOpenResponse(activity) || correctAnswers(activity).some((answer) => normalizeAnswer(answer) === normalizeAnswer(selectedAnswer));
+  const attemptNumber = session.attempts.filter((attempt) => attempt.questionKey === key).length + 1;
+
+  if (isCorrect && !session.completed.includes(key)) {
     session.completed.push(key);
   }
+
   session.attempts.push({
     skill: activity.skill,
     questionKey: key,
     questionText: activity.question,
-    selectedAnswer: activity.answer,
+    selectedAnswer,
     correctAnswer: activity.answer,
-    isCorrect: true,
+    isCorrect,
+    attemptNumber,
     createdAt: new Date().toISOString()
   });
+
+  if (isCorrect && isOpenResponse(activity)) {
+    session.talkTime.push({
+      prompt: activity.question,
+      response: selectedAnswer,
+      createdAt: new Date().toISOString()
+    });
+  }
+
   saveState();
   const lines = voiceLines[family.voiceStyle] || voiceLines.playful_hype;
-  const line = lines[session.completed.length % lines.length];
+  const line = isCorrect ? lines[session.completed.length % lines.length] : "Good try. Take a breath and try again.";
   speak(line, family);
   toast(line);
 }
@@ -420,6 +516,7 @@ function buildDashboardHtml(family, session) {
   const attempts = session.attempts;
   const talk = session.talkTime;
   const practice = nextPracticeAreas(family, attempts);
+  const stats = attemptStats(attempts);
   return `
     <div class="dashboard-grid">
       <article class="dashboard-card">
@@ -428,9 +525,9 @@ function buildDashboardHtml(family, session) {
         <span>rounds complete</span>
       </article>
       <article class="dashboard-card">
-        <small>Talk Time</small>
-        <strong>${talk.length}</strong>
-        <span>answers saved</span>
+        <small>Answers</small>
+        <strong>${stats.correct} of ${stats.total}</strong>
+        <span>correct attempts</span>
       </article>
       <article class="dashboard-card">
         <small>Practice</small>
@@ -447,6 +544,14 @@ function buildDashboardHtml(family, session) {
           <span>${escapeHtml(item.response)}</span>
         </article>
       `).join("") : `<p class="empty">No Talk Time yet today.</p>`}
+      <h3>Recent Attempts</h3>
+      ${attempts.length ? [...attempts].reverse().slice(0, 6).map((attempt) => `
+        <article class="dashboard-card">
+          <small>${escapeHtml(attempt.skill)} · ${attempt.isCorrect ? "Correct" : "Try again"}</small>
+          <strong>${escapeHtml(attempt.questionText)}</strong>
+          <span>Answer: ${escapeHtml(attempt.selectedAnswer)}</span>
+        </article>
+      `).join("") : `<p class="empty">No attempts saved yet.</p>`}
       <h3>What to practice next</h3>
       ${practice.map((item) => `<article class="dashboard-card"><strong>${escapeHtml(item)}</strong><span>${escapeHtml(practiceActivity(item, family.childName))}</span></article>`).join("")}
       <button id="copySummary" class="secondary-action" type="button">Copy parent summary</button>
@@ -487,11 +592,19 @@ function buildDashboardHtml(family, session) {
   `;
 }
 
+function attemptStats(attempts) {
+  return {
+    total: attempts.length,
+    correct: attempts.filter((attempt) => attempt.isCorrect).length
+  };
+}
+
 function nextPracticeAreas(family, attempts) {
   const goals = family.goals.length ? family.goals : ["Talk Time", "Money Math", "Family Words"];
-  const attemptedSkills = new Set(attempts.map((item) => item.skill));
+  const attemptedSkills = new Set(attempts.filter((item) => item.isCorrect).map((item) => item.skill));
+  const missedSkills = attempts.filter((item) => !item.isCorrect).map((item) => item.skill);
   const notTried = goals.filter((goal) => !attemptedSkills.has(goal));
-  return [...notTried, ...goals].slice(0, 3);
+  return [...new Set([...missedSkills, ...notTried, ...goals])].slice(0, 3);
 }
 
 function practiceActivity(skill, childName) {
@@ -507,10 +620,12 @@ function practiceActivity(skill, childName) {
 }
 
 function buildParentSummary(family, session) {
+  const stats = attemptStats(session.attempts);
   return [
     `${family.childName}'s Daily Adventure summary`,
     `Date: ${session.date}`,
     `Completed: ${session.completed.length} of ${totalRounds}`,
+    `Answer attempts: ${stats.correct} correct of ${stats.total}`,
     `Talk Time answers: ${session.talkTime.length}`,
     `Practice next: ${nextPracticeAreas(family, session.attempts).join(", ")}`
   ].join("\n");

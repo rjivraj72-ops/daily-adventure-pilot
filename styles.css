@@ -387,6 +387,54 @@ legend {
   justify-self: start;
 }
 
+.answer-form {
+  display: grid;
+  gap: 12px;
+}
+
+.answer-options {
+  display: grid;
+  gap: 8px;
+}
+
+.answer-options label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 11px;
+  border: 1px solid rgba(8, 120, 101, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff, #f8fcfa);
+}
+
+.answer-options input {
+  width: 20px;
+  min-height: 20px;
+}
+
+.answer-result {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.answer-result span,
+.answer-hint {
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.answer-result strong {
+  color: var(--ink);
+}
+
+.answer-hint {
+  margin-bottom: 0;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -19,8 +19,8 @@ The starter question bank is generic. It does not use any private family informa
 ## Pages In This Prototype
 
 - **Family Setup**: parent creates a child profile, goals, interests, PIN, and voice style.
-- **Child App**: short daily activity cards chosen from a reusable question bank based on the child's goals and interests, with an optional browser voice prompt.
-- **Parent Dashboard**: progress, Talk Time, practice suggestions, parent feedback, and export.
+- **Child App**: short daily activity cards chosen from a reusable question bank based on the child's goals and interests, with answer choices, text/dictation responses, and optional browser voice prompts.
+- **Parent Dashboard**: progress, answer attempts, Talk Time, practice suggestions, parent feedback, and export.
 - **Pilot Admin**: family list, recent activity, feedback counts, and export data.
 - **Home Screen App Icon**: `manifest.webmanifest` and `icons/` help the app save cleanly on iPhone and mobile browsers.
 
