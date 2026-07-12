@@ -24,6 +24,15 @@ The starter question bank is generic. It does not use any private family informa
 - **Pilot Admin**: family list, recent activity, feedback counts, and export data.
 - **Home Screen App Icon**: `manifest.webmanifest` and `icons/` help the app save cleanly on iPhone and mobile browsers.
 
+## Add To iPhone Home Screen
+
+1. Open the app link in Safari on iPhone.
+2. Tap the Share button.
+3. Tap **Add to Home Screen**.
+4. Tap **Add**.
+
+Daily Adventure should then appear on the home screen with the app icon.
+
 ## Next Technical Step
 
 Replace `localStore` in `app.js` with a Supabase-backed store:
