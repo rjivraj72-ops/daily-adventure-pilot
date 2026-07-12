@@ -691,6 +691,7 @@ function buildDashboardHtml(family, session) {
   const talk = session.talkTime;
   const practice = nextPracticeAreas(family, attempts);
   const stats = attemptStats(attempts);
+  const trends = progressTrends(family);
   return `
     <div class="dashboard-grid">
       <article class="dashboard-card">
@@ -709,6 +710,7 @@ function buildDashboardHtml(family, session) {
         <span>top suggestion</span>
       </article>
     </div>
+    ${buildTrendsHtml(trends)}
     <div class="list">
       <h3>Recent Talk Time</h3>
       ${talk.length ? talk.map((item) => `
@@ -777,6 +779,125 @@ function buildDashboardHtml(family, session) {
       <button class="primary-action" type="submit">Save pilot feedback</button>
     </form>
   `;
+}
+
+function buildTrendsHtml(trends) {
+  return `
+    <section class="trend-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Progress over time</p>
+          <h3>Last 7 days</h3>
+        </div>
+        <span class="status-pill">${trends.streak} day streak</span>
+      </div>
+      <div class="trend-grid">
+        <article class="dashboard-card">
+          <small>Days used</small>
+          <strong>${trends.daysUsed} of 7</strong>
+          <span>with at least one round</span>
+        </article>
+        <article class="dashboard-card">
+          <small>Average completion</small>
+          <strong>${trends.averageCompletion}%</strong>
+          <span>across active days</span>
+        </article>
+        <article class="dashboard-card">
+          <small>Talk Time</small>
+          <strong>${trends.talkCount}</strong>
+          <span>answers saved</span>
+        </article>
+      </div>
+      <div class="day-strip" aria-label="Last seven days progress">
+        ${trends.days.map((day) => `
+          <div class="day-chip ${day.completed >= totalRounds ? "complete" : day.completed > 0 ? "started" : ""}">
+            <small>${escapeHtml(day.label)}</small>
+            <strong>${day.completed}</strong>
+          </div>
+        `).join("")}
+      </div>
+      <div class="trend-grid two-col">
+        <article class="dashboard-card">
+          <small>Strongest areas</small>
+          <strong>${trends.strongSkills.join(", ") || "Building data"}</strong>
+          <span>based on correct answers</span>
+        </article>
+        <article class="dashboard-card">
+          <small>Needs practice</small>
+          <strong>${trends.practiceSkills.join(", ") || "No misses yet"}</strong>
+          <span>based on recent missed attempts</span>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+function progressTrends(family) {
+  const sessions = family.sessions || [];
+  const byDate = new Map(sessions.map((session) => [session.date, session]));
+  const days = lastNDays(7).map((date) => {
+    const session = byDate.get(date.key);
+    return {
+      ...date,
+      completed: session?.completed?.length || 0,
+      attempts: session?.attempts || [],
+      talkTime: session?.talkTime || []
+    };
+  });
+  const activeDays = days.filter((day) => day.completed > 0);
+  const averageCompletion = activeDays.length
+    ? Math.round(activeDays.reduce((sum, day) => sum + Math.min(day.completed / totalRounds, 1), 0) / activeDays.length * 100)
+    : 0;
+  const allAttempts = days.flatMap((day) => day.attempts);
+  const allTalk = days.flatMap((day) => day.talkTime);
+  const correctCounts = countBy(allAttempts.filter((attempt) => attempt.isCorrect).map((attempt) => attempt.skill));
+  const missedCounts = countBy(allAttempts.filter((attempt) => !attempt.isCorrect).map((attempt) => attempt.skill));
+
+  return {
+    days,
+    daysUsed: activeDays.length,
+    averageCompletion,
+    talkCount: allTalk.length,
+    streak: currentStreak(days),
+    strongSkills: topKeys(correctCounts, 3),
+    practiceSkills: topKeys(missedCounts, 3)
+  };
+}
+
+function lastNDays(count) {
+  const formatter = new Intl.DateTimeFormat(undefined, { weekday: "short" });
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (count - 1 - index));
+    const key = date.toISOString().slice(0, 10);
+    return {
+      key,
+      label: formatter.format(date)
+    };
+  });
+}
+
+function currentStreak(days) {
+  let streak = 0;
+  for (let index = days.length - 1; index >= 0; index -= 1) {
+    if (days[index].completed <= 0) break;
+    streak += 1;
+  }
+  return streak;
+}
+
+function countBy(items) {
+  return items.reduce((counts, item) => {
+    counts[item] = (counts[item] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function topKeys(counts, limit) {
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([key]) => key);
 }
 
 function attemptStats(attempts) {

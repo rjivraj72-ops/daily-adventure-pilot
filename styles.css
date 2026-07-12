@@ -480,6 +480,62 @@ legend {
   margin-bottom: 14px;
 }
 
+.trend-panel {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid rgba(8, 120, 101, 0.14);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff, var(--surface-soft));
+}
+
+.trend-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.trend-grid.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.day-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.day-chip {
+  display: grid;
+  gap: 4px;
+  min-height: 72px;
+  place-items: center;
+  border: 1px solid rgba(16, 47, 41, 0.1);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.day-chip.started {
+  background: var(--gold-soft);
+  border-color: rgba(220, 164, 49, 0.3);
+}
+
+.day-chip.complete {
+  background: var(--surface-soft);
+  border-color: rgba(8, 120, 101, 0.28);
+}
+
+.day-chip small {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.day-chip strong {
+  color: var(--accent-strong);
+  font-size: 1.25rem;
+}
+
 .list {
   display: grid;
   gap: 10px;
@@ -640,8 +696,15 @@ legend {
   .form-grid,
   .activity-grid,
   .dashboard-grid,
+  .trend-grid,
+  .trend-grid.two-col,
   .parent-menu-grid {
     grid-template-columns: 1fr;
+  }
+
+  .day-strip {
+    grid-template-columns: repeat(7, minmax(42px, 1fr));
+    overflow-x: auto;
   }
 
   .section-heading,
