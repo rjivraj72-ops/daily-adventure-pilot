@@ -10,6 +10,7 @@ The goal is simple:
 - Parents get a dashboard.
 - The pilot organizer gets a simple admin view.
 - Families can leave feedback without needing technical setup.
+- The app can be saved to a phone home screen with a Daily Adventure icon.
 
 This first version uses browser storage so the product flow can be tested quickly. The code is structured so the storage layer can be replaced with Supabase for the real pilot.
 
@@ -21,6 +22,7 @@ The starter question bank is generic. It does not use any private family informa
 - **Child App**: short daily activity cards chosen from a reusable question bank based on the child's goals and interests, with an optional browser voice prompt.
 - **Parent Dashboard**: progress, Talk Time, practice suggestions, parent feedback, and export.
 - **Pilot Admin**: family list, recent activity, feedback counts, and export data.
+- **Home Screen App Icon**: `manifest.webmanifest` and `icons/` help the app save cleanly on iPhone and mobile browsers.
 
 ## Next Technical Step
 

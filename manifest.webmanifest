@@ -1,0 +1,25 @@
+{
+  "name": "Daily Adventure Pilot",
+  "short_name": "Daily Adventure",
+  "description": "A warm daily learning adventure for families to pilot.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4faf7",
+  "theme_color": "#0b7667",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
