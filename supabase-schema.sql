@@ -73,6 +73,8 @@ create table pilot_feedback (
   family_id uuid not null references families(id) on delete cascade,
   setup_ease text,
   learner_enjoyed text,
+  first_minute text,
+  learner_moment text,
   what_was_confusing text,
   add_next text,
   created_at timestamptz not null default now()

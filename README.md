@@ -19,11 +19,13 @@ The starter question bank is generic. It does not use any private family informa
 ## Pages In This Prototype
 
 - **Family Setup**: parent creates a learner profile, age range, starting level, goals, interests, PIN, and voice style.
-- **Learner App**: short daily activity cards chosen from a reusable question bank based on the learner's goals and interests, with answer choices, text/dictation responses, and optional browser voice prompts.
+- **Learner App**: short daily activity cards chosen from a reusable question bank based on the learner's goals and interests, with answer choices, text/dictation responses, and optional ElevenLabs voice prompts.
 - **Parent Area**: setup, dashboard, and admin tools are tucked behind the Parent PIN.
-- **Parent Dashboard**: progress, answer attempts, Talk Time, practice suggestions, parent feedback, and export.
+- **Parent Dashboard**: progress, answer attempts, Talk Time, practice suggestions, natural tester feedback prompts, and export.
 - **Pilot Admin**: family list, recent activity, feedback counts, and export data behind the parent area.
 - **Home Screen App Icon**: `manifest.webmanifest` and `icons/` help the app save cleanly on iPhone and mobile browsers.
+- **ElevenLabs Audio**: `audio/` contains the pilot MP3 prompts. Browser voice is only used as a fallback if audio cannot play.
+- **ElevenLabs Prompts**: `elevenlabs-prompts.txt` contains the copy-ready voice lines used to create the audio.
 
 ## Question Levels
 
@@ -34,6 +36,19 @@ The starter question bank uses three readiness levels:
 3. **Confident**: more independent reasoning.
 
 Age range gives a gentle suggestion, but the parent-selected starting level guides the daily question mix.
+
+## Tester Feedback Prompts
+
+The Parent Dashboard includes natural, voice-ready feedback prompts. The pilot now plays the exported ElevenLabs MP3s from `audio/` when available.
+
+The prompts ask parents to notice:
+
+- the first minute of setup
+- what the learner seemed to enjoy
+- where the learner looked confused or distracted
+- what one thing should change before another family tries it
+
+See `elevenlabs-prompts.txt` for the full copy/paste recording script.
 
 ## Add To iPhone Home Screen
 

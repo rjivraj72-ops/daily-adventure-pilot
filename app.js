@@ -82,31 +82,35 @@ const levelLabels = {
   confident: "Confident"
 };
 
-const voiceLines = {
-  playful_hype: [
-    "Brain power is online.",
-    "That answer was smooth.",
-    "Focus level unlocked.",
-    "Team adventure is moving."
-  ],
-  calm: [
-    "Take your time.",
-    "One step at a time.",
-    "Good calm focus.",
-    "You are doing well."
-  ],
-  travel: [
-    "Passport ready.",
-    "Next stop, another challenge.",
-    "That answer earned a stamp.",
-    "Adventure mode is open."
-  ],
-  business: [
-    "That is CEO thinking.",
-    "Check the numbers.",
-    "Smart move for the buyer.",
-    "Keep the orders moving."
-  ]
+const testerFeedbackPrompts = [
+  "Think back to the first minute. Did Daily Adventure feel easy to start, or did anything slow you down?",
+  "What did the learner seem to enjoy most? A question, a voice prompt, a button, a color, or just finishing a round?",
+  "Was there any moment where the learner looked confused, distracted, or unsure what to do next?",
+  "If you could change one thing before another family tries it, what would you change?"
+];
+
+const audioPrompts = {
+  learnerStart: ["learner_start_01.mp3", "learner_start_02.mp3"],
+  correct: ["correct_01.mp3", "correct_02.mp3"],
+  tryAgain: ["try_again_01.mp3", "try_again_02.mp3"],
+  talkSaved: ["talk_saved_01.mp3"],
+  halfway: ["progress_halfway_01.mp3"],
+  complete: ["progress_complete_01.mp3"],
+  parentUnlock: ["parent_unlock_01.mp3"],
+  parentLock: ["parent_lock_01.mp3"],
+  testerFeedback: ["tester_feedback_01.mp3"]
+};
+
+const audioFallbackText = {
+  learnerStart: "Welcome back. Your Daily Adventure is ready.",
+  correct: "Yes. That was a strong answer.",
+  tryAgain: "Good try. Take a breath and pick another answer.",
+  talkSaved: "Talk Time saved. Thanks for sharing your answer.",
+  halfway: "You are halfway there. Keep the energy steady.",
+  complete: "Daily Adventure complete. Nice work today.",
+  parentUnlock: "Parent area unlocked. You can review progress and feedback.",
+  parentLock: "Parent area locked. Returning to the learner app.",
+  testerFeedback: testerFeedbackPrompts[0]
 };
 
 const localStore = {
@@ -124,6 +128,7 @@ const localStore = {
 
 let state = localStore.load();
 let parentUnlocked = false;
+let currentAudio = null;
 
 function saveState() {
   localStore.save(state);
@@ -299,6 +304,7 @@ function adultOnlyView(view) {
 
 function render() {
   const view = currentView();
+  updateModeSwitch(view);
   document.querySelectorAll("[data-nav]").forEach((link) => {
     link.classList.toggle("active", link.dataset.nav === view);
   });
@@ -311,6 +317,15 @@ function render() {
   if (view === "parent") return renderParent();
   if (view === "admin") return renderAdmin();
   return renderSetup();
+}
+
+function updateModeSwitch(view) {
+  const switchLink = document.querySelector("#modeSwitch");
+  if (!switchLink) return;
+  const inAdultArea = adultOnlyView(view) || view === "parent-access";
+  switchLink.textContent = inAdultArea && parentUnlocked ? "Learner" : "Parent";
+  switchLink.href = inAdultArea && parentUnlocked ? "#child" : parentUnlocked ? "#parent-menu" : "#parent-access";
+  switchLink.classList.toggle("active", inAdultArea);
 }
 
 function mountTemplate(id) {
@@ -373,6 +388,7 @@ function renderParentAccess(targetView = "parent-menu") {
       return;
     }
     parentUnlocked = true;
+    playPrompt("parentUnlock", family, { force: true });
     toast("Parent area unlocked.");
     navigate(targetView);
   });
@@ -381,7 +397,9 @@ function renderParentAccess(targetView = "parent-menu") {
 function renderParentMenu() {
   mountTemplate("#parent-menu-view");
   document.querySelector("#lockParentArea").addEventListener("click", () => {
+    const family = getActiveFamily();
     parentUnlocked = false;
+    playPrompt("parentLock", family, { force: true });
     toast("Parent area locked.");
     navigate("child");
   });
@@ -450,7 +468,7 @@ function renderChild() {
     family.voiceEnabled = !family.voiceEnabled;
     saveState();
     updateVoiceToggle(family);
-    if (family.voiceEnabled) speak(`Voice is on. ${buildChildIntro(family)}`, family);
+    if (family.voiceEnabled) playPrompt("learnerStart", family);
     toast(`Voice ${family.voiceEnabled ? "on" : "off"}.`);
   });
 
@@ -467,7 +485,7 @@ function renderChild() {
     });
     saveState();
     document.querySelector("#talkResponse").value = "";
-    speak("Talk Time saved.", family);
+    playPrompt("talkSaved", family);
     toast("Talk Time saved for the parent dashboard.");
   });
 }
@@ -522,17 +540,36 @@ function updateVoiceToggle(family) {
 function buildChildIntro(family) {
   const interestsList = family.interests || [];
   const interests = interestsList.length ? interestsList.join(", ") : "their interests";
-  const voice = voiceLines[family.voiceStyle]?.[0] || "Let's begin.";
   const level = levelLabels[family.startingLevel || ageSuggestedLevel(family.ageRange)] || "Growing";
-  return `${voice} Today's ${level.toLowerCase()} path uses ${interests} to make practice feel personal.`;
+  return `Today's ${level.toLowerCase()} path uses ${interests} to make practice feel personal.`;
 }
 
-function speak(message, family) {
-  if (family.voiceEnabled === false || !("speechSynthesis" in window)) return;
+function playPrompt(name, family, options = {}) {
+  const force = Boolean(options.force);
+  if ((!force && family?.voiceEnabled === false) || !audioPrompts[name]?.length) return;
+  const prompts = audioPrompts[name];
+  const file = prompts[Math.floor(Math.random() * prompts.length)];
+  const fallback = audioFallbackText[name] || options.fallback || "";
+
+  try {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+    currentAudio = new Audio(`audio/${file}`);
+    currentAudio.play().catch(() => speakFallback(fallback, family, force));
+  } catch {
+    speakFallback(fallback, family, force);
+  }
+}
+
+function speakFallback(message, family, force = false) {
+  if (!message) return;
+  if ((!force && family?.voiceEnabled === false) || !("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(message);
-  utterance.rate = family.voiceStyle === "calm" ? 0.86 : 0.95;
-  utterance.pitch = family.voiceStyle === "playful_hype" ? 1.08 : 1;
+  utterance.rate = family?.voiceStyle === "calm" ? 0.86 : 0.95;
+  utterance.pitch = family?.voiceStyle === "playful_hype" ? 1.08 : 1;
   window.speechSynthesis.speak(utterance);
 }
 
@@ -580,10 +617,16 @@ function submitActivityAnswer(family, index, selectedAnswer) {
   }
 
   saveState();
-  const lines = voiceLines[family.voiceStyle] || voiceLines.playful_hype;
-  const line = isCorrect ? lines[session.completed.length % lines.length] : "Good try. Take a breath and try again.";
-  speak(line, family);
-  toast(line);
+  const promptName = completionPromptName(session, isCorrect);
+  playPrompt(promptName, family);
+  toast(audioFallbackText[promptName]);
+}
+
+function completionPromptName(session, isCorrect) {
+  if (!isCorrect) return "tryAgain";
+  if (session.completed.length >= totalRounds) return "complete";
+  if (session.completed.length === Math.ceil(totalRounds / 2)) return "halfway";
+  return "correct";
 }
 
 function renderParent() {
@@ -614,6 +657,8 @@ function renderParent() {
     family.feedback.push({
       setupEase: formData.get("setupEase"),
       learnerEnjoyed: formData.get("learnerEnjoyed"),
+      firstMinute: formData.get("firstMinute").trim(),
+      learnerMoment: formData.get("learnerMoment").trim(),
       confusing: formData.get("confusing").trim(),
       addNext: formData.get("addNext").trim(),
       createdAt: new Date().toISOString()
@@ -622,6 +667,11 @@ function renderParent() {
     event.currentTarget.reset();
     toast("Pilot feedback saved. Thank you.");
     renderParent();
+  });
+
+  document.querySelector("#playFeedbackPrompt")?.addEventListener("click", () => {
+    playPrompt("testerFeedback", family, { force: true });
+    toast("Feedback prompt playing.");
   });
 }
 
@@ -671,6 +721,11 @@ function buildDashboardHtml(family, session) {
     </div>
     <form id="feedbackForm" class="feedback-form">
       <h3>Pilot feedback</h3>
+      <div class="feedback-prompt-card">
+        <small>Voice-ready tester prompt</small>
+        ${testerFeedbackPrompts.map((prompt) => `<p>${escapeHtml(prompt)}</p>`).join("")}
+        <button id="playFeedbackPrompt" class="secondary-action" type="button">Play prompt</button>
+      </div>
       <p class="helper-text">A quick parent note helps us improve the experience for the next family.</p>
       <div class="form-grid">
         <label>
@@ -692,6 +747,14 @@ function buildDashboardHtml(family, session) {
           </select>
         </label>
       </div>
+      <label>
+        First minute reaction
+        <textarea name="firstMinute" rows="3" placeholder="Example: It was easy to start, but I was not sure where to tap next."></textarea>
+      </label>
+      <label>
+        Learner moment
+        <textarea name="learnerMoment" rows="3" placeholder="Example: They smiled at the voice prompt or liked the money question."></textarea>
+      </label>
       <label>
         What felt confusing?
         <textarea name="confusing" rows="3" placeholder="Optional note"></textarea>

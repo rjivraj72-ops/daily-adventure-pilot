@@ -484,6 +484,33 @@ legend {
   min-height: 50px;
 }
 
+.feedback-prompt-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(220, 164, 49, 0.28);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff, var(--gold-soft));
+}
+
+.feedback-prompt-card small {
+  color: var(--accent-strong);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.feedback-prompt-card p {
+  margin-bottom: 0;
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.feedback-prompt-card button {
+  justify-self: start;
+}
+
 .parent-lock-panel,
 .parent-pin-form {
   max-width: 520px;

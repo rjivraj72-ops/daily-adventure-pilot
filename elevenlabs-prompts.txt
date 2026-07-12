@@ -1,0 +1,115 @@
+Daily Adventure Pilot - ElevenLabs Prompt Script
+
+Voice design prompt, 500 characters max:
+Warm, upbeat learning coach for neurodivergent learners and adults. Friendly, clear, playful, and respectful. Natural pacing, not robotic. Sounds encouraging without being childish. Use a confident smile in the voice, gentle humor, and calm energy. Keep words easy to understand. Celebrate effort, invite focus, and make parents feel the app is safe and supportive.
+
+Suggested export format:
+- Export each line as its own MP3.
+- Use the suggested filename.
+- Keep volume consistent.
+- Leave a small pause at the end of each file.
+
+Learner start prompts:
+learner_start_01.mp3
+Welcome back. Your Daily Adventure is ready.
+
+learner_start_02.mp3
+Nice to see you. Let's do this one step at a time.
+
+learner_start_03.mp3
+Brain warmup time. Pick a card and start your path.
+
+learner_start_04.mp3
+Today is a fresh adventure. You have got this.
+
+Correct answer prompts:
+correct_01.mp3
+Yes. That was a strong answer.
+
+correct_02.mp3
+Nice work. You are moving forward.
+
+correct_03.mp3
+Good thinking. That one is done.
+
+correct_04.mp3
+That was smooth. Keep going.
+
+correct_05.mp3
+Great focus. Another round complete.
+
+Try again prompts:
+try_again_01.mp3
+Good try. Take a breath and pick another answer.
+
+try_again_02.mp3
+Almost there. Look again and try one more time.
+
+try_again_03.mp3
+No worries. This is practice. Try again.
+
+try_again_04.mp3
+Pause for a second. You can do this.
+
+Talk Time prompts:
+talk_saved_01.mp3
+Talk Time saved. Thanks for sharing your answer.
+
+talk_saved_02.mp3
+I like hearing your thoughts. That answer is saved.
+
+talk_hint_01.mp3
+Try answering in a full sentence.
+
+talk_hint_02.mp3
+You can start with I, my, or today.
+
+Progress prompts:
+progress_halfway_01.mp3
+You are halfway there. Keep the energy steady.
+
+progress_almost_done_01.mp3
+Almost done. Finish strong.
+
+progress_complete_01.mp3
+Daily Adventure complete. Nice work today.
+
+progress_complete_02.mp3
+You finished your path. That is something to feel good about.
+
+Parent area prompts:
+parent_unlock_01.mp3
+Parent area unlocked. You can review progress and feedback.
+
+parent_lock_01.mp3
+Parent area locked. Returning to the learner app.
+
+parent_feedback_intro_01.mp3
+Here are a few quick questions to help us improve the pilot.
+
+Tester feedback prompts:
+tester_feedback_01.mp3
+Think back to the first minute. Did Daily Adventure feel easy to start, or did anything slow you down?
+
+tester_feedback_02.mp3
+What did the learner seem to enjoy most? A question, a voice prompt, a button, a color, or just finishing a round?
+
+tester_feedback_03.mp3
+Was there any moment where the learner looked confused, distracted, or unsure what to do next?
+
+tester_feedback_04.mp3
+If you could change one thing before another family tries it, what would you change?
+
+Setup and home screen prompts:
+setup_ready_01.mp3
+Family setup is ready. The learner can start their Daily Adventure.
+
+home_screen_01.mp3
+To make this feel like an app, open it in Safari and choose Add to Home Screen.
+
+Voice toggle prompts:
+voice_on_01.mp3
+Voice is on. I will guide the adventure.
+
+voice_off_01.mp3
+Voice is off. You can still keep going.
